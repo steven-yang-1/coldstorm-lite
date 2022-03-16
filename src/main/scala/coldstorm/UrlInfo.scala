@@ -6,7 +6,7 @@ object UrlInfo {
     val method = parts.last
     val controller = parts(parts.length - 2)
     val controllerArray = controller.split('_')
-    val controllerArray1 = controllerArray.foreach((value: String) => {
+    val controllerArray1 = controllerArray.map((value: String) => {
       value.capitalize
     })
     val controllerName: String = controllerArray1.mkString
