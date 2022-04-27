@@ -6,16 +6,18 @@ import java.util
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-object HttpServer {
+object TcpServer {
   val config: Map[String, Any] = Map(
     "maxWorkers" -> 10,
-    "defaultCharEncoding" -> "UTF-8"
+    "defaultCharEncoding" -> "UTF-8",
+    "controller" -> "coldstorm.Controller",
+    "port" -> 8000
   )
   var currentWorkers: Int = 0
-  def main(args: Array[String]): Unit = {
+  def launchWithLogic(proc : SocketChannel => Unit) {
     val selector: Selector = Selector.open()
     val serverSocketChannel: ServerSocketChannel = ServerSocketChannel.open()
-    serverSocketChannel.bind(new InetSocketAddress("localhost", 8000))
+    serverSocketChannel.bind(new InetSocketAddress("localhost", config.get("port").asInstanceOf[Int]))
     serverSocketChannel.configureBlocking(false)
     serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT)
     val lock: Object = new Object()
@@ -27,8 +29,8 @@ object HttpServer {
       while (iterator.hasNext) {
         val key: SelectionKey = iterator.next()
         var workerCount: Int = currentWorkers
-        while (workerCount > config("maxWorkers")) {
-          workerCount = HttpServer.currentWorkers
+        while (workerCount > config.get("maxWorkers")) {
+          workerCount = TcpServer.currentWorkers
           Thread.sleep(100)
         }
         lock.synchronized {
@@ -42,11 +44,12 @@ object HttpServer {
         if (key.isReadable) {
           Future {
             val connect: SocketChannel = key.channel().asInstanceOf[SocketChannel]
-            val request: HttpRequest = new HttpRequest(connect)
-            val urlInfo: UrlInfoCase = UrlInfo.parse("/")
-            val clazz = Class.forName(urlInfo.controller)
-            val method = clazz.getMethod(urlInfo.method)
-            method.invoke(clazz.getDeclaredConstructor().newInstance())
+            /*
+            val clazz = Class.forName(config.get("controller").asInstanceOf[String])
+            val method = clazz.getMethod("index", classOf[SocketChannel])
+            method.invoke(clazz.getDeclaredConstructor().newInstance(), connect)
+             */
+            proc(connect);
             iterator.remove()
             lock2.synchronized {
               currentWorkers = currentWorkers - 1
@@ -55,5 +58,10 @@ object HttpServer {
         }
       }
     }
+  }
+  def main(args: Array[String]): Unit = {
+    launchWithLogic((socketChannel: SocketChannel) => {
+      // Start your business logic here!
+    });
   }
 }
