@@ -26,7 +26,7 @@ object TcpServer {
       while (iterator.hasNext) {
         val key: SelectionKey = iterator.next()
         var workerCount: Int = currentWorkers
-        while (workerCount > config.get("maxWorkers")) {
+        while (workerCount >= config.get("maxWorkers")) {
           workerCount = TcpServer.currentWorkers
           Thread.sleep(100)
         }
@@ -41,11 +41,6 @@ object TcpServer {
         if (key.isReadable) {
           Future {
             val connect: SocketChannel = key.channel().asInstanceOf[SocketChannel]
-            /*
-            val clazz = Class.forName(config.get("controller").asInstanceOf[String])
-            val method = clazz.getMethod("index", classOf[SocketChannel])
-            method.invoke(clazz.getDeclaredConstructor().newInstance(), connect)
-             */
             proc(connect);
             iterator.remove()
             lock.synchronized {
@@ -58,8 +53,7 @@ object TcpServer {
   }
   def main(args: Array[String]): Unit = {
     launchWithLogic((socketChannel: SocketChannel) => {
-      // Start your business logic code here!
-
+      new Controller(socketChannel).index()
     });
   }
 }
