@@ -9,8 +9,6 @@ import scala.concurrent.Future
 object TcpServer {
   val config: Map[String, Any] = Map(
     "maxWorkers" -> 10,
-    "defaultCharEncoding" -> "UTF-8",
-    "controller" -> "coldstorm.Controller",
     "port" -> 8000
   )
   var currentWorkers: Int = 0
@@ -21,7 +19,6 @@ object TcpServer {
     serverSocketChannel.configureBlocking(false)
     serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT)
     val lock: Object = new Object()
-    val lock2: Object = new Object()
     while (true) {
       selector.select()
       val selectedKeys: util.Set[SelectionKey] = selector.selectedKeys()
@@ -51,7 +48,7 @@ object TcpServer {
              */
             proc(connect);
             iterator.remove()
-            lock2.synchronized {
+            lock.synchronized {
               currentWorkers = currentWorkers - 1
             }
           }
@@ -61,7 +58,8 @@ object TcpServer {
   }
   def main(args: Array[String]): Unit = {
     launchWithLogic((socketChannel: SocketChannel) => {
-      // Start your business logic here!
+      // Start your business logic code here!
+
     });
   }
 }
