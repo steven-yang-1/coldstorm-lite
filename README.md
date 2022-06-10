@@ -1,3 +1,1 @@
-COLDSTORM Lite 1.0 is a light-weight open-source NIO TCP Server and Framework for high concurrency and stress scenes with BSD-license written in Scala.
-
-Write your business logic code in the "Controller" class.
+COLDSTORM Lite 1.0.2 is a light-weight open-source NIO TCP Server for high concurrency and stressful scenes with BSD-license written in Scala.
